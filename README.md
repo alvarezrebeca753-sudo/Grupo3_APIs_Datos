@@ -10,7 +10,9 @@ Este repositorio contiene los entregables del proyecto de documentación de soft
 
 ## Integrantes
 - Rebeca Álvarez
-- [Agregar nombres del grupo]
+- Albany Gonzales
+- Jose Pablo Monestel
+- Avril Madrigal
 
 ## Descripción
 El proyecto corresponde al Grupo 3 y desarrolla ejemplos de documentación para APIs y datos, incluyendo especificación de API, modelo de datos y trazabilidad.
