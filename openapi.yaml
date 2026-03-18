@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info:
+  title: API Gestión de Citas
+  version: 1.0.0
+  description: API básica para gestión de pacientes y citas
+
+servers:
+  - url: http://localhost:8080/api/v1
+
+paths:
+  /patients:
+    get:
+      summary: Obtener pacientes
+      responses:
+        '200':
+          description: Lista de pacientes
+
+  /appointments:
+    get:
+      summary: Obtener citas
+      responses:
+        '200':
+          description: Lista de citas
+
+    post:
+      summary: Crear cita
+      requestBody:
+        required: true
+      responses:
+        '201':
+          description: Cita creada correctamente
+ 
