@@ -1,0 +1,297 @@
+openapi: 3.0.3
+info:
+  title: Medical Appointments API
+  description: |
+    API REST para la gestión de pacientes y citas médicas.
+    Desarrollada por el Grupo 3 - Ingeniería del Software I
+    INVENIO University - IT-2026-TIIT2004.1
+  version: "1.0.0"
+  contact:
+    name: Grupo 3 - INVENIO
+    email: rarcea@student.invenio.ac.cr
+
+servers:
+  - url: https://api.medicalapp.invenio.ac.cr/v1
+    description: Servidor de producción
+  - url: http://localhost:3000/v1
+    description: Servidor de desarrollo local
+
+tags:
+  - name: Patients
+    description: Operaciones relacionadas con pacientes
+  - name: Appointments
+    description: Operaciones relacionadas con citas médicas
+
+paths:
+  /patients:
+    get:
+      tags:
+        - Patients
+      summary: Obtener lista de pacientes
+      description: Retorna el listado completo de pacientes registrados en el sistema.
+      operationId: getPatients
+      responses:
+        "200":
+          description: Lista de pacientes obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Patient"
+              example:
+                - patientId: 1
+                  name: "María López"
+                  email: "maria.lopez@email.com"
+                - patientId: 2
+                  name: "Carlos Rodríguez"
+                  email: "carlos.rodriguez@email.com"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /patients/{patientId}:
+    get:
+      tags:
+        - Patients
+      summary: Obtener paciente por ID
+      description: Retorna la información de un paciente específico.
+      operationId: getPatientById
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          description: Identificador único del paciente
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Paciente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "404":
+          description: Paciente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /appointments:
+    get:
+      tags:
+        - Appointments
+      summary: Obtener lista de citas
+      description: Retorna el listado de todas las citas registradas.
+      operationId: getAppointments
+      parameters:
+        - name: patientId
+          in: query
+          required: false
+          description: Filtrar citas por ID de paciente
+          schema:
+            type: integer
+        - name: date
+          in: query
+          required: false
+          description: Filtrar citas por fecha (formato YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Lista de citas obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+              example:
+                - appointmentId: 10
+                  patientId: 1
+                  date: "2026-03-20"
+                  time: "09:00"
+                - appointmentId: 11
+                  patientId: 2
+                  date: "2026-03-21"
+                  time: "14:30"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      tags:
+        - Appointments
+      summary: Crear nueva cita
+      description: Registra una nueva cita médica para un paciente.
+      operationId: createAppointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentRequest"
+            example:
+              patientId: 1
+              date: "2026-03-20"
+              time: "10:00"
+      responses:
+        "201":
+          description: Cita creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentCreated"
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Paciente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Conflicto - Horario ya ocupado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /appointments/{appointmentId}:
+    delete:
+      tags:
+        - Appointments
+      summary: Cancelar cita
+      description: Cancela (elimina) una cita médica registrada.
+      operationId: deleteAppointment
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          description: Identificador único de la cita
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cita cancelada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cita cancelada correctamente"
+        "404":
+          description: Cita no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Patient:
+      type: object
+      properties:
+        patientId:
+          type: integer
+          description: Identificador único del paciente
+          example: 1
+        name:
+          type: string
+          description: Nombre completo del paciente
+          example: "María López"
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del paciente
+          example: "maria.lopez@email.com"
+      required:
+        - patientId
+        - name
+        - email
+
+    Appointment:
+      type: object
+      properties:
+        appointmentId:
+          type: integer
+          description: Identificador único de la cita
+          example: 10
+        patientId:
+          type: integer
+          description: ID del paciente asociado
+          example: 1
+        date:
+          type: string
+          format: date
+          description: Fecha de la cita (YYYY-MM-DD)
+          example: "2026-03-20"
+        time:
+          type: string
+          pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$"
+          description: Hora de la cita (HH:MM)
+          example: "09:00"
+      required:
+        - appointmentId
+        - patientId
+        - date
+        - time
+
+    AppointmentRequest:
+      type: object
+      properties:
+        patientId:
+          type: integer
+          description: ID del paciente para quien se crea la cita
+          example: 1
+        date:
+          type: string
+          format: date
+          description: Fecha de la cita (YYYY-MM-DD)
+          example: "2026-03-20"
+        time:
+          type: string
+          pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$"
+          description: Hora de la cita (HH:MM)
+          example: "10:00"
+      required:
+        - patientId
+        - date
+        - time
+
+    AppointmentCreated:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Cita creada correctamente"
+        appointmentId:
+          type: integer
+          example: 12
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Código de error HTTP
+          example: 404
+        message:
+          type: string
+          description: Descripción del error
+          example: "Recurso no encontrado"
